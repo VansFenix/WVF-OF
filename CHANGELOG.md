@@ -10,11 +10,16 @@ All notable changes to OpenFluxAndroid. Format loosely follows
 ### Fixed
 
 - «Без сервера»: the node now stays up on any host and keeps the tunnel going
-  across its generations. Bumps `OpenFlux` to
-  [`acac97b`](https://github.com/p1neappleXpress/OpenFlux/commit/acac97b) (the node
-  survives a host's CPU, wall-clock and disabled-function limits and hands over
-  early and consistently) and `shared` to
-  [`18ee37c`](https://github.com/p1neappleXpress/OpenFluxClientShared/commit/18ee37c).
+  across its generations, and the install no longer fails when the host cuts a
+  transfer short (InfinityFree's FTP aborted the link parser part way): a file is
+  sent again, and `auto` goes on in plain FTP after it keeps failing over TLS.
+  The wizard also adds a node already on the hosting from its site and access key
+  (no FTP), takes a key of your own on an FTP install, opens the node's panel in
+  the browser, and shows which generation serves («работает · поколение N»).
+  Bumps `OpenFlux` to
+  [`d245db7`](https://github.com/p1neappleXpress/OpenFlux/commit/d245db7) and
+  `shared` to
+  [`98572e2`](https://github.com/p1neappleXpress/OpenFluxClientShared/commit/98572e2).
 
 ### Added
 
