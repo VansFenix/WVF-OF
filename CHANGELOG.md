@@ -7,6 +7,15 @@ All notable changes to OpenFluxAndroid. Format loosely follows
 
 ## [2.2.0] - 2026-10-01
 
+### Fixed
+
+- «Без сервера»: the node now stays up on any host and keeps the tunnel going
+  across its generations. Bumps `OpenFlux` to
+  [`acac97b`](https://github.com/p1neappleXpress/OpenFlux/commit/acac97b) (the node
+  survives a host's CPU, wall-clock and disabled-function limits and hands over
+  early and consistently) and `shared` to
+  [`18ee37c`](https://github.com/p1neappleXpress/OpenFluxClientShared/commit/18ee37c).
+
 ### Added
 
 - With carriers at equal top priority the badge and «Сейчас через» name all of
