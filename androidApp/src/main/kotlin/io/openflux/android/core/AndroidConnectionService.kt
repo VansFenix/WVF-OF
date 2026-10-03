@@ -24,6 +24,7 @@ import io.openflux.desktop.service.SettingsRepository
 import io.openflux.desktop.ui.BrowserPage
 import io.openflux.desktop.ui.Format
 import io.openflux.desktop.ui.look
+import org.json.JSONObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -502,24 +503,33 @@ class AndroidConnectionService(
         }
     }
 
-    // ---- Yandex checks ----
+    // ---- Yandex checks / script setup pages ----
 
-    /** Shows a check the core just asked for; forgets one it no longer waits on. */
+    /** Shows a check (or a script's own setup page) the core just asked for; forgets one it no longer waits on. */
     private fun checkCaptcha() {
         val url = Mobile.pendingCaptchaURL().orEmpty()
-        if (url.isEmpty()) {
+        val html = Mobile.pendingCaptchaHTML().orEmpty()
+        if (url.isEmpty() && html.isEmpty()) {
             if (captchaUrl != null && _captcha.value?.busy != true) clearCaptcha()
             return
         }
-        if (url == captchaUrl) return
-        captchaUrl = url
+        val identity = url.ifEmpty { html }
+        if (identity == captchaUrl) return
+        captchaUrl = identity
         captchaSolved = false
         val proxy = Mobile.pendingCaptchaProxy().orEmpty()
         val reason = Mobile.pendingCaptchaReason().orEmpty()
         val remote = proxy.isNotEmpty()
-        log(LogLevel.Warning, if (remote) "Нода просит пройти проверку Яндекса" else "Яндекс просит пройти проверку")
-        _captcha.value = CaptchaPrompt(url, reason, remote)
-        openPage(url, proxy)
+        log(
+            LogLevel.Warning,
+            when {
+                html.isNotEmpty() -> "Транспорт просит настройку"
+                remote -> "Нода просит пройти проверку Яндекса"
+                else -> "Яндекс просит пройти проверку"
+            },
+        )
+        _captcha.value = CaptchaPrompt(url, reason, remote, html = html.ifEmpty { null })
+        openPage(url, proxy, html)
         if (!context.openFlux.visible) CoreService.notifyCaptcha(context, remote, login = reason == "login")
     }
 
@@ -532,14 +542,15 @@ class AndroidConnectionService(
 
     override fun openCaptcha() {
         val prompt = _captcha.value ?: return
-        openPage(prompt.url, Mobile.pendingCaptchaProxy().orEmpty())
+        openPage(prompt.url, Mobile.pendingCaptchaProxy().orEmpty(), prompt.html.orEmpty())
     }
 
-    private fun openPage(url: String, proxy: String) {
+    private fun openPage(url: String, proxy: String, html: String = "") {
         (_captchaPage.value as? WebPage)?.close()
-        val page = WebPage(url, proxy)
+        val page = if (html.isNotEmpty()) WebPage(html = html, onSubmit = ::onSetupSubmission) else WebPage(url, proxy)
         _captchaPage.value = page
         _captcha.update { it?.copy(error = "", progress = "") }
+        if (html.isNotEmpty()) return // the page submits itself; no cookie/settle detection applies.
         // A real browser is often let through without any check (it targets the
         // core's bot-like client): a regular page that stays put counts as passed.
         scope.launch {
@@ -555,6 +566,38 @@ class AndroidConnectionService(
                     return@launch
                 }
                 delay(300)
+            }
+        }
+    }
+
+    /**
+     * window.openfluxSubmit(payload) from a script's own setup page
+     * (WebPage's Submit bridge). payload is either flat {key: value} or
+     * {client: {...}, node: {...}} (see the node-config-scope design); only
+     * the client half is applied here today - node delivery during a node
+     * deploy is a separate, not yet wired, path.
+     */
+    private fun onSetupSubmission(json: String) {
+        if (_captcha.value?.busy == true) return
+        _captcha.update { it?.copy(busy = true, error = "") }
+        scope.launch {
+            try {
+                val root = JSONObject(json)
+                val scoped = if (root.has("client")) root.getJSONObject("client") else root
+                val flat = JSONObject()
+                scoped.keys().forEach { k -> flat.put(k, scoped.get(k).toString()) }
+                check(flat.length() > 0) { "Страница настройки не передала данных" }
+                captchaSolved = true
+                val error = Mobile.submitCaptchaData(flat.toString()).orEmpty()
+                if (error.isNotEmpty()) {
+                    captchaSolved = false
+                    _captcha.update { it?.copy(busy = false, error = error) }
+                    return@launch
+                }
+                log(LogLevel.Success, "Настройка передана транспорту")
+                clearCaptcha()
+            } catch (e: Exception) {
+                _captcha.update { it?.copy(busy = false, error = e.message ?: "Не удалось передать настройку") }
             }
         }
     }

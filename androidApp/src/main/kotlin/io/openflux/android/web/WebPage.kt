@@ -29,12 +29,16 @@ import java.util.concurrent.atomic.AtomicLong
  * [WebBrowserViews]. It is created the first time it is shown and kept until
  * [close], so hiding the dialog does not lose the page. [proxy] ("host:port")
  * sends it through the tunnel, for a check the exit node must pass from its
- * own address.
+ * own address. [html], instead of [startUrl], is a script transport's own
+ * setup/login page (see js/template_html.html); it submits itself through
+ * [onSubmit] (window.openfluxSubmit) rather than through cookies.
  */
 class WebPage(
-    private val startUrl: String,
+    private val startUrl: String = "",
     private val proxy: String = "",
     private val scripts: Boolean = false,
+    private val html: String? = null,
+    private val onSubmit: ((String) -> Unit)? = null,
 ) : BrowserPage {
     @Volatile var url: String = startUrl
         private set
@@ -70,6 +74,7 @@ class WebPage(
             setAcceptThirdPartyCookies(web, true)
         }
         if (scripts) web.addJavascriptInterface(Results(), BRIDGE)
+        if (html != null) web.addJavascriptInterface(Submit(), SUBMIT_BRIDGE)
         web.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                 this@WebPage.url = url
@@ -79,10 +84,15 @@ class WebPage(
             override fun onPageFinished(view: WebView, url: String) {
                 this@WebPage.url = url
                 loading = false
+                if (html != null) view.evaluateJavascript(SUBMIT_BRIDGE_JS, null)
             }
         }
         view = web
-        if (proxy.isEmpty()) {
+        if (html != null) {
+            // Never through the tunnel's proxy: a script's own page is loopback-only,
+            // like httpserver.listen() on the core side it usually talks to.
+            web.loadDataWithBaseURL(null, html, "text/html", "utf-8", null)
+        } else if (proxy.isEmpty()) {
             web.loadUrl(startUrl)
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
             proxyOverridden = true
@@ -147,9 +157,22 @@ class WebPage(
         }
     }
 
+    private inner class Submit {
+        @JavascriptInterface
+        fun submit(json: String) {
+            onSubmit?.invoke(json)
+        }
+    }
+
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:153.0) Gecko/20100101 Firefox/153.0"
         private const val BRIDGE = "OpenFluxBridge"
+        private const val SUBMIT_BRIDGE = "OpenFluxSubmit"
+        private val SUBMIT_BRIDGE_JS = """
+            window.openfluxSubmit = function (payload) {
+              try { window.$SUBMIT_BRIDGE.submit(JSON.stringify(payload)); } catch (e) {}
+            };
+        """.trimIndent()
 
         /** Every cookie of the built-in browser, the Yandex sign-in among them. */
         fun clearCookies() {
