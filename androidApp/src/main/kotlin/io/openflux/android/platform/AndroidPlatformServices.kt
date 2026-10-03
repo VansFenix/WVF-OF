@@ -103,18 +103,27 @@ class AndroidPlatformServices(
     override fun now(): Long = System.currentTimeMillis()
 
     override suspend fun latestRelease(): String? = withContext(Dispatchers.IO) {
-        runCatching {
-            val connection = URL("https://api.github.com/repos/$RELEASE_REPO/releases?per_page=20").openConnection() as HttpURLConnection
-            connection.connectTimeout = 8000
-            connection.readTimeout = 10000
-            connection.setRequestProperty("User-Agent", "OpenFlux-Android")
-            val body = connection.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
-            Json.parseToJsonElement(body).jsonArray
-                .map { it.jsonObject["tag_name"]?.jsonPrimitive?.content.orEmpty() }
-                .firstOrNull { it.startsWith(TAG_PREFIX) }
-                ?.removePrefix(TAG_PREFIX)
-        }.getOrNull()
+        releaseTags().firstOrNull { it.startsWith(TAG_PREFIX) }?.removePrefix(TAG_PREFIX)
     }
+
+    /** The newest release of either channel; GitHub lists them newest first. */
+    override suspend fun latestNightly(): String? = withContext(Dispatchers.IO) {
+        releaseTags().firstOrNull { it.startsWith(TAG_PREFIX) || it.startsWith(NIGHTLY_PREFIX) }
+            ?.removePrefix(TAG_PREFIX)
+    }
+
+    /** Tags of the published (non-draft) releases, newest first; empty when offline. */
+    private fun releaseTags(): List<String> = runCatching {
+        val connection = URL("https://api.github.com/repos/$RELEASE_REPO/releases?per_page=30").openConnection() as HttpURLConnection
+        connection.connectTimeout = 8000
+        connection.readTimeout = 10000
+        connection.setRequestProperty("User-Agent", "OpenFlux-Android")
+        val body = connection.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+        Json.parseToJsonElement(body).jsonArray
+            .map { it.jsonObject }
+            .filter { it["draft"]?.jsonPrimitive?.content != "true" }
+            .map { it["tag_name"]?.jsonPrimitive?.content.orEmpty() }
+    }.getOrDefault(emptyList())
 
     /** The picked image, scaled down so a camera photo does not exhaust memory. */
     private fun loadBitmap(uri: Uri): Bitmap? {
@@ -143,6 +152,8 @@ class AndroidPlatformServices(
     private companion object {
         const val RELEASE_REPO = "p1neappleXpress/OpenFluxAndroid"
         const val TAG_PREFIX = "v"
+        /** Nightly test builds are tagged nightly-<date>-<commit>, as prereleases. */
+        const val NIGHTLY_PREFIX = "nightly-"
         const val MAX_QR_IMAGE = 2048
         val IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "bmp", "gif", "webp")
     }

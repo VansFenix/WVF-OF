@@ -5,6 +5,16 @@ All notable changes to OpenFluxAndroid. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- A second release channel: nightly test builds next to the main releases. A
+  nightly is a GitHub prerelease tagged `nightly-<date>-<commit>`, built by the
+  new `Nightly` workflow from the `nightly` branch (on a push to it, and every
+  night when it has a commit without a build), signed with the same key as a
+  main release so it installs over one; the newest 7 are kept. Settings → About
+  has a «Ночные сборки» switch: with it on, «Проверить обновления» also looks
+  at nightlies; the main channel never sees them.
+
 ## [2.2.0] - 2026-10-01
 
 ### Fixed
