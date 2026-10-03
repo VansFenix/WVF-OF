@@ -57,6 +57,8 @@ class AndroidConnectionService(
     private val context: Context,
     private val settings: SettingsRepository,
     private val bridge: ActivityBridge,
+    /** Installed script transports, to resolve a SCRIPT carrier's file + pinned key. */
+    private val scripts: AndroidScriptRepository? = null,
 ) : ConnectionService {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     /** connect/disconnect/failures one at a time. */
@@ -291,7 +293,7 @@ class AndroidConnectionService(
             }.orEmpty()
         }
         return if (profile.session) {
-            val specs = CoreSpecs.session(profile, exit = current.kind == Kind.Exit, directPort = current.settings.exitDirectPort)
+            val specs = CoreSpecs.session(profile, exit = current.kind == Kind.Exit, directPort = current.settings.exitDirectPort) { id -> scripts?.carrier(id) }
             when (current.kind) {
                 Kind.Vpn -> Mobile.startSession(specs, secret)
                 Kind.Proxy -> Mobile.startSessionProxy(specs, secret, proxyAddress(current.settings), "", "", "")
@@ -462,8 +464,25 @@ class AndroidConnectionService(
     override fun refreshExitAddress() {
         val checked = run ?: return
         if (checked.kind == Kind.Exit) return
-        // OpenFlux stays outside its own VPN, so without a proxy of its own it
-        // cannot ask ipify through the tunnel; only a browser the user opens can.
+        // OpenFlux stays outside its own VPN, so it cannot ask ipify through the tunnel.
+        // The stream VPN has a way out all the same: a stream beside the device's packets.
+        if (checked.kind == Kind.Vpn && checked.profile.stream) {
+            _exitAddress.value = ExitAddress.Checking
+            scope.launch {
+                val result = runCatching {
+                    val ip = Mobile.streamExitIP()
+                    when {
+                        ip.isEmpty() -> ExitAddress.Unavailable("нода ещё не отвечает")
+                        ip.startsWith("error:") -> ExitAddress.Unavailable(ip.removePrefix("error:").trim())
+                        IP.matches(ip) -> ExitAddress.Known(ip)
+                        else -> ExitAddress.Unavailable("неожиданный ответ")
+                    }
+                }.getOrElse { ExitAddress.Unavailable(it.message ?: "нет ответа") }
+                if (run === checked) _exitAddress.value = result
+            }
+            return
+        }
+        // Any other VPN/exit mode: only a browser the user opens can reach ipify.
         if (checked.kind != Kind.Proxy) {
             if (run === checked) _exitAddress.value = ExitAddress.Unavailable("откройте api.ipify.org в браузере")
             return

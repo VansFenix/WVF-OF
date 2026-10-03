@@ -43,6 +43,35 @@ class AndroidPlatformServices(
     override val appVersion: String = BuildConfig.VERSION_NAME
     override val coreVersion: String = BuildConfig.CORE_VERSION
     override val clientRepo: String = RELEASE_REPO
+
+    override val officialScriptKey: String get() = io.openflux.bridge.mobile.Mobile.officialScriptKey()
+
+    override fun inspectTransport(data: ByteArray, sig: ByteArray, pubkeyHex: String): String =
+        io.openflux.bridge.mobile.Mobile.inspectTransport(data, sig, pubkeyHex)
+
+    override fun scriptFingerprint(pubkeyHex: String): String =
+        io.openflux.bridge.mobile.Mobile.scriptFingerprint(pubkeyHex)
+
+    override suspend fun fetchBytes(url: String): ByteArray? = withContext(Dispatchers.IO) {
+        runCatching {
+            val c = URL(url).openConnection() as HttpURLConnection
+            c.connectTimeout = 10000
+            c.readTimeout = 15000
+            c.instanceFollowRedirects = true
+            c.setRequestProperty("User-Agent", "OpenFlux-Android")
+            c.inputStream.use { it.readBytes() }
+        }.getOrNull()
+    }
+
+    override suspend fun readBytes(pathOrUri: String): ByteArray? = withContext(Dispatchers.IO) {
+        runCatching {
+            if (pathOrUri.startsWith("content://")) {
+                context.contentResolver.openInputStream(Uri.parse(pathOrUri))?.use { it.readBytes() }
+            } else {
+                java.io.File(pathOrUri).readBytes()
+            }
+        }.getOrNull()
+    }
     override val systemProxySupported = false
     /** The VPN: the whole phone through the node. */
     override val fullTunnelSupported = true

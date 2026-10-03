@@ -2,7 +2,10 @@ package io.openflux.android
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
+import io.openflux.bridge.mobile.Mobile
 import io.openflux.android.core.AndroidConnectionService
+import io.openflux.android.core.AndroidScriptRepository
 import io.openflux.android.core.MobileCoreLinks
 import io.openflux.android.node.AndroidNodeWizard
 import io.openflux.android.node.AndroidPhpTransport
@@ -37,11 +40,13 @@ class OpenFluxApplication : Application() {
         super.onCreate()
         // On a phone the VPN is what "connected" means; the proxy is the opt-out.
         val settings = FileSettingsRepository(filesDir, defaults = AppSettings(fullTunnel = true))
-        connection = AndroidConnectionService(this, settings, bridge)
+        val scripts = AndroidScriptRepository(this)
+        connection = AndroidConnectionService(this, settings, bridge, scripts)
         val phpHosting = PhpHostingService(AndroidPhpTransport(), clock = System::currentTimeMillis)
         container = AppContainer(
             profiles = FileProfileRepository(filesDir),
             settings = settings,
+            scripts = scripts,
             // Connecting a profile made by the "без сервера" wizard first asks its node on the hosting to run.
             connection = NodeKeepingConnection(connection, phpHosting, CoroutineScope(SupervisorJob() + Dispatchers.Default)),
             platform = AndroidPlatformServices(this, bridge),
@@ -49,6 +54,20 @@ class OpenFluxApplication : Application() {
             nodeWizard = AndroidNodeWizard(),
             phpHosting = phpHosting,
         )
+
+        // Intermediate bundle: prove the JS (goja) script-transport engine is
+        // linked into this build and runs in-process on the device, alongside
+        // the unchanged PHP-node transports. Result lands in logcat under the
+        // tag "OpenFluxJS"; no UI yet — picking a script transport comes later.
+        Thread {
+            try {
+                val available = Mobile.scriptEngineAvailable()
+                val result = Mobile.scriptEngineSelfTest(cacheDir.absolutePath)
+                Log.i("OpenFluxJS", "engine available=$available selftest=$result")
+            } catch (t: Throwable) {
+                Log.e("OpenFluxJS", "engine self-test failed", t)
+            }
+        }.start()
     }
 }
 
