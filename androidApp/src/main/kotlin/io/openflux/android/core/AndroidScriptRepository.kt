@@ -41,7 +41,7 @@ class AndroidScriptRepository(context: Context) : ScriptRepository {
     val officialKey: String get() = Mobile.officialScriptKey()
 
     init {
-        if (_scripts.value.isEmpty()) installBundled()
+        if (_scripts.value.isEmpty()) installBundled() else upgradeBundled()
     }
 
     override fun upsert(script: InstalledScript) {
@@ -110,6 +110,13 @@ class AndroidScriptRepository(context: Context) : ScriptRepository {
 
     override val dirPath: String get() = dir.absolutePath
 
+    override fun repin(id: String, pubkeyHex: String, fingerprint: String) {
+        _scripts.value = _scripts.value.map {
+            if (it.id == id) it.copy(pubkeyHex = pubkeyHex, fingerprint = fingerprint) else it
+        }
+        persist()
+    }
+
     override fun hasPrevious(id: String): Boolean = byId(id)?.let { File(dir, it.fileName + ".prev").exists() } == true
 
     override fun refresh(id: String): InstalledScript? {
@@ -146,6 +153,36 @@ class AndroidScriptRepository(context: Context) : ScriptRepository {
                 val jsBytes = assets.open("scripts/$file").use { it.readBytes() }
                 val sigBytes = runCatching { assets.open("scripts/$file.sig").use { it.readBytes() } }.getOrNull() ?: return@runCatching
                 install(jsBytes, sigBytes, officialKey, ScriptSource.Bundled, "bundled:$file", now = 0L)
+            }
+        }
+    }
+
+    /**
+     * The scripts shipped with this build replace the installed copies of the
+     * same bundled script when they are newer: a bundled script has no update
+     * address of its own, so a new build is how it gets fixed. Only what is
+     * installed is touched (a script the user deleted stays deleted), a script
+     * the user switched off stays off, and one they added themselves under the
+     * same name is left alone.
+     */
+    private fun upgradeBundled() {
+        val assets = appContext.assets
+        val names = runCatching { assets.list("scripts")?.toList().orEmpty() }.getOrDefault(emptyList())
+            .filter { it.endsWith(".js") }
+        for (file in names) {
+            runCatching {
+                val jsBytes = assets.open("scripts/$file").use { it.readBytes() }
+                val sigBytes = runCatching { assets.open("scripts/$file.sig").use { it.readBytes() } }.getOrNull() ?: return@runCatching
+                val report = json.parseToJsonElement(Mobile.inspectTransport(jsBytes, sigBytes, officialKey)).jsonObject
+                if (report["ok"]?.jsonPrimitive?.booleanOrNull != true || report["signature"]?.jsonPrimitive?.contentOrNull != "valid") return@runCatching
+                val name = report["name"]?.jsonPrimitive?.contentOrNull ?: return@runCatching
+                val shipped = report["version"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                val installed = byId(name) ?: return@runCatching
+                if (installed.source != ScriptSource.Bundled) return@runCatching
+                if (Mobile.compareScriptVersions(shipped, installed.version) <= 0) return@runCatching
+                val wasEnabled = installed.enabled
+                install(jsBytes, sigBytes, officialKey, ScriptSource.Bundled, "bundled:$file", now = installed.addedAt)
+                if (!wasEnabled) setEnabled(name, false)
             }
         }
     }
