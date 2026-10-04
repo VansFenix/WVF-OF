@@ -53,6 +53,7 @@ class OpenFluxApplication : Application() {
             shareCodec = CoreShareLinkCodec(MobileCoreLinks),
             nodeWizard = AndroidNodeWizard(),
             phpHosting = phpHosting,
+            settingsPageHost = io.openflux.android.web.AndroidSettingsPageHost,
         )
 
         // Intermediate bundle: prove the JS (goja) script-transport engine is

@@ -10,7 +10,13 @@ import kotlinx.serialization.json.put
 /** A profile in the form the gomobile core's Start calls take. */
 internal object CoreSpecs {
     /** A resolved script carrier: the on-disk file, its pinned key, its id. */
-    data class ScriptCarrier(val path: String, val pubkeyHex: String, val name: String)
+    data class ScriptCarrier(
+        val path: String,
+        val pubkeyHex: String,
+        val name: String,
+        /** What the user saved in the script's settings wizard; the script gets it as cfg.params. */
+        val settings: Map<String, String> = emptyMap(),
+    )
 
     /**
      * The Session transport list for StartSession / StartSessionProxy /
@@ -74,6 +80,9 @@ internal object CoreSpecs {
                     put("path", script.path)
                     put("pubkey", script.pubkeyHex)
                     put("name", script.name)
+                    // Nested, not flattened here: the core's registry merges it into cfg.params without
+                    // letting a setting shadow path/pubkey/name/exit.
+                    if (script.settings.isNotEmpty()) put("settings", buildJsonObject { script.settings.forEach { (k, v) -> put(k, v) } })
                 }
                 else -> Unit
             }

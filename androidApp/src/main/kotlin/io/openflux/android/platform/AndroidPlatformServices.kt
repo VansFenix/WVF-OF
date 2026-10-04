@@ -49,6 +49,9 @@ class AndroidPlatformServices(
     override fun inspectTransport(data: ByteArray, sig: ByteArray, pubkeyHex: String): String =
         io.openflux.bridge.mobile.Mobile.inspectTransport(data, sig, pubkeyHex)
 
+    override fun scriptSettings(data: ByteArray, sig: ByteArray, pubkeyHex: String, valuesJson: String, lang: String): String =
+        io.openflux.bridge.mobile.Mobile.scriptSettings(data, sig, pubkeyHex, valuesJson, lang)
+
     override fun checkScriptUpdate(installedJson: String, channel: String): String =
         io.openflux.bridge.mobile.Mobile.checkScriptUpdate(installedJson, channel)
 

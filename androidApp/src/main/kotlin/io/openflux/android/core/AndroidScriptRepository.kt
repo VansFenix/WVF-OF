@@ -28,7 +28,7 @@ class AndroidScriptRepository(context: Context) :
     /** The on-disk file + pinned key for a carrier; null when the script is gone. */
     internal fun carrier(id: String): CoreSpecs.ScriptCarrier? {
         val s = byId(id) ?: return null
-        return CoreSpecs.ScriptCarrier(File(dir, s.fileName).absolutePath, s.pubkeyHex, s.id)
+        return CoreSpecs.ScriptCarrier(File(dir, s.fileName).absolutePath, s.pubkeyHex, s.id, s.settings)
     }
 
     /** The (script, detached signature) pairs shipped with this build. */

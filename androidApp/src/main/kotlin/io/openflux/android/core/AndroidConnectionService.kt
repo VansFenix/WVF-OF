@@ -453,7 +453,9 @@ class AndroidConnectionService(
     private fun notificationText(current: Run): String {
         val look = _state.value.look().title
         val traffic = _traffic.value
-        val via = traffic.activeTransport.takeIf { it.isNotEmpty() }?.let { " · $it" }.orEmpty()
+        // Which carriers: "Volga + Мой транспорт", a script by its own name (the core only calls it "script").
+        val names = traffic.activeCarriers
+        val via = if (names.isEmpty()) "" else " · " + current.profile.carrierLabels(names, scripts?.scripts?.value.orEmpty())
         return when (_state.value) {
             is ConnectionState.Connected -> "$look · ↓ ${Format.speed(traffic.downBytesPerSec)}  ↑ ${Format.speed(traffic.upBytesPerSec)}$via"
             else -> if (current.notice.isNotEmpty()) "$look · ${current.notice}" else look
@@ -509,6 +511,8 @@ class AndroidConnectionService(
     private fun checkCaptcha() {
         val url = Mobile.pendingCaptchaURL().orEmpty()
         val html = Mobile.pendingCaptchaHTML().orEmpty()
+        // The core says which pages are the script's own (inline html or its own loopback server).
+        val own = Mobile.pendingCaptchaOwn() || html.isNotEmpty()
         if (url.isEmpty() && html.isEmpty()) {
             if (captchaUrl != null && _captcha.value?.busy != true) clearCaptcha()
             return
@@ -523,13 +527,16 @@ class AndroidConnectionService(
         log(
             LogLevel.Warning,
             when {
-                html.isNotEmpty() -> "Транспорт просит настройку"
+                own -> "Транспорт просит настройку"
                 remote -> "Нода просит пройти проверку Яндекса"
                 else -> "Яндекс просит пройти проверку"
             },
         )
-        _captcha.value = CaptchaPrompt(url, reason, remote, html = html.ifEmpty { null })
-        openPage(url, proxy, html)
+        _captcha.value = CaptchaPrompt(
+            url, reason, remote,
+            html = html.ifEmpty { null }, own = own, transport = Mobile.pendingCaptchaTransport().orEmpty(),
+        )
+        openPage(url, proxy, html, own)
         if (!context.openFlux.visible) CoreService.notifyCaptcha(context, remote, login = reason == "login")
     }
 
@@ -542,15 +549,20 @@ class AndroidConnectionService(
 
     override fun openCaptcha() {
         val prompt = _captcha.value ?: return
-        openPage(prompt.url, Mobile.pendingCaptchaProxy().orEmpty(), prompt.html.orEmpty())
+        openPage(prompt.url, Mobile.pendingCaptchaProxy().orEmpty(), prompt.html.orEmpty(), prompt.own)
     }
 
-    private fun openPage(url: String, proxy: String, html: String = "") {
+    private fun openPage(url: String, proxy: String, html: String = "", own: Boolean = html.isNotEmpty()) {
         (_captchaPage.value as? WebPage)?.close()
-        val page = if (html.isNotEmpty()) WebPage(html = html, onSubmit = ::onSetupSubmission) else WebPage(url, proxy)
+        val page = when {
+            html.isNotEmpty() -> WebPage(html = html, onSubmit = ::onSetupSubmission)
+            // The script's own server: loopback, never through the exit's proxy.
+            own -> WebPage(url, own = true, onSubmit = ::onSetupSubmission)
+            else -> WebPage(url, proxy)
+        }
         _captchaPage.value = page
         _captcha.update { it?.copy(error = "", progress = "") }
-        if (html.isNotEmpty()) return // the page submits itself; no cookie/settle detection applies.
+        if (own) return // the page submits itself; no cookie/settle detection applies.
         // A real browser is often let through without any check (it targets the
         // core's bot-like client): a regular page that stays put counts as passed.
         scope.launch {
@@ -571,34 +583,24 @@ class AndroidConnectionService(
     }
 
     /**
-     * window.openfluxSubmit(payload) from a script's own setup page
-     * (WebPage's Submit bridge). payload is either flat {key: value} or
-     * {client: {...}, node: {...}} (see the node-config-scope design); only
-     * the client half is applied here today - node delivery during a node
-     * deploy is a separate, not yet wired, path.
+     * window.openfluxSubmit(payload) from a script's own setup page (WebPage's
+     * Submit bridge). The core reads the payload (script.FlattenSubmission:
+     * flat or {client: {...}}, values as strings) and hands it to the script;
+     * node-scoped delivery during a node deploy is a separate, not yet wired, path.
      */
     private fun onSetupSubmission(json: String) {
         if (_captcha.value?.busy == true) return
         _captcha.update { it?.copy(busy = true, error = "") }
         scope.launch {
-            try {
-                val root = JSONObject(json)
-                val scoped = if (root.has("client")) root.getJSONObject("client") else root
-                val flat = JSONObject()
-                scoped.keys().forEach { k -> flat.put(k, scoped.get(k).toString()) }
-                check(flat.length() > 0) { "Страница настройки не передала данных" }
-                captchaSolved = true
-                val error = Mobile.submitCaptchaData(flat.toString()).orEmpty()
-                if (error.isNotEmpty()) {
-                    captchaSolved = false
-                    _captcha.update { it?.copy(busy = false, error = error) }
-                    return@launch
-                }
-                log(LogLevel.Success, "Настройка передана транспорту")
-                clearCaptcha()
-            } catch (e: Exception) {
-                _captcha.update { it?.copy(busy = false, error = e.message ?: "Не удалось передать настройку") }
+            captchaSolved = true
+            val error = Mobile.submitCaptchaData(json).orEmpty()
+            if (error.isNotEmpty()) {
+                captchaSolved = false
+                _captcha.update { it?.copy(busy = false, error = error) }
+                return@launch
             }
+            log(LogLevel.Success, "Настройка передана транспорту")
+            clearCaptcha()
         }
     }
 
