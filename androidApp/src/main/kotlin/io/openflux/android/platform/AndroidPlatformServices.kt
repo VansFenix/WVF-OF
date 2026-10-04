@@ -68,7 +68,19 @@ class AndroidPlatformServices(
             c.readTimeout = 15000
             c.instanceFollowRedirects = true
             c.setRequestProperty("User-Agent", "OpenFlux-Android")
-            c.inputStream.use { it.readBytes() }
+            // A transport package is a few KB; an answer past the cap is not one.
+            if (c.responseCode !in 200..299) return@runCatching null
+            c.inputStream.use { body ->
+                val out = java.io.ByteArrayOutputStream()
+                val buf = ByteArray(8192)
+                while (true) {
+                    val n = body.read(buf)
+                    if (n < 0) break
+                    out.write(buf, 0, n)
+                    if (out.size() > MAX_FETCH_BYTES) return@runCatching null
+                }
+                out.toByteArray()
+            }
         }.getOrNull()
     }
 
@@ -188,6 +200,8 @@ class AndroidPlatformServices(
     }
 
     private companion object {
+        /** Largest answer fetchBytes returns; a downloaded transport is a few KB. */
+        const val MAX_FETCH_BYTES = 4 * 1024 * 1024
         const val RELEASE_REPO = "p1neappleXpress/OpenFluxAndroid"
         const val TAG_PREFIX = "v"
         /** Nightly test builds are tagged nightly-<date>-<commit>, as prereleases. */
