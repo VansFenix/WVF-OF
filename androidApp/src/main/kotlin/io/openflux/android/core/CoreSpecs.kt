@@ -9,13 +9,18 @@ import kotlinx.serialization.json.put
 
 /** A profile in the form the gomobile core's Start calls take. */
 internal object CoreSpecs {
-    /** A resolved script carrier: the on-disk file, its pinned key, its id. */
+    /**
+     * A resolved script carrier: facts about the installed FILE, the same for
+     * every carrier using it. What a carrier itself saved (profile value,
+     * settings wizard) travels on the [io.openflux.desktop.model.SessionSpec]
+     * instead; see its settings field.
+     */
     data class ScriptCarrier(
         val path: String,
         val pubkeyHex: String,
         val name: String,
-        /** What the user saved in the script's settings wizard; the script gets it as cfg.params. */
-        val settings: Map<String, String> = emptyMap(),
+        /** [io.openflux.desktop.model.InstalledScript.primaryParam]'s key, null when the script has none. */
+        val primaryParamKey: String? = null,
     )
 
     /**
@@ -33,7 +38,7 @@ internal object CoreSpecs {
     ): String {
         val specs = profile.sessionSpecs().filterNot { exit && it.type == TransportType.DIRECT }
         val transports = buildJsonArray {
-            for (spec in specs) add(spec(spec.name, spec.type, spec.value, spec.uid, spec.priority, spec.scriptId, resolveScript))
+            for (spec in specs) add(spec(spec.name, spec.type, spec.value, spec.uid, spec.priority, spec.scriptId, spec.settings, resolveScript))
             // The exit listens for direct only when the profile has it.
             val direct = profile.carriers.firstOrNull { it.type == TransportType.DIRECT }
             if (exit && direct != null) {
@@ -60,6 +65,7 @@ internal object CoreSpecs {
         uid: String,
         priority: Int,
         scriptId: String,
+        settings: Map<String, String>,
         resolveScript: (String) -> ScriptCarrier?,
     ): JsonObject = buildJsonObject {
         val script = if (type == TransportType.SCRIPT) resolveScript(scriptId) else null
@@ -80,9 +86,13 @@ internal object CoreSpecs {
                     put("path", script.path)
                     put("pubkey", script.pubkeyHex)
                     put("name", script.name)
+                    // The profile param's own value rides along under its declared key
+                    // too (mirroring "url" above): a script reading cfg.params[key]
+                    // instead of cfg.url sees what the profile editor's field saved.
+                    val merged = settings + (script.primaryParamKey?.let { mapOf(it to value) } ?: emptyMap())
                     // Nested, not flattened here: the core's registry merges it into cfg.params without
                     // letting a setting shadow path/pubkey/name/exit.
-                    if (script.settings.isNotEmpty()) put("settings", buildJsonObject { script.settings.forEach { (k, v) -> put(k, v) } })
+                    if (merged.isNotEmpty()) put("settings", buildJsonObject { merged.forEach { (k, v) -> put(k, v) } })
                 }
                 else -> Unit
             }
