@@ -5,6 +5,34 @@ All notable changes to OpenFluxAndroid. Format loosely follows
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-07
+
+### Added
+
+- **«Экспериментальные функции»** (Settings): the JS-transport features below are off by default and
+  for settings saved before; nothing of them is shown, started or fetched, and the JS engine is not
+  started when the app starts, until the switch is on.
+- **JS transports** (experimental, off by default): the «Транспорты» tab, installing a signed
+  transport by link, file or catalog with a trust dialog and the author's key fingerprint, the
+  settings a transport declares (a wizard page), its own setup and login pages in a WebView, update
+  check with changelog, apply and roll back, and the transports shipped in the app (installed, or
+  replaced by a newer shipped version, the first time the switch is turned on). A profile that uses
+  a JS transport does not connect while the switch is off, and says so.
+- A second release channel: nightly test builds next to the main releases. A
+  nightly is a GitHub prerelease tagged `nightly-<date>-<commit>`, built by the
+  new `Nightly` workflow from the `nightly` branch (on a push to it, and every
+  night when it has a commit without a build), signed with the same key as a
+  main release so it installs over one; the newest 7 are kept. Settings → About
+  has a «Ночные сборки» switch: with it on, «Проверить обновления» also looks
+  at nightlies; the main channel never sees them.
+
+### Changed
+
+- Bumps `OpenFlux` to the core 0.4.0 ([`a415c09`](https://github.com/p1neappleXpress/OpenFlux/commit/a415c09d1d1006a201b5e9523d2f30d7ee2b4149)) and `shared` to
+  [`a7fca72`](https://github.com/p1neappleXpress/OpenFluxClientShared/commit/a7fca72).
+- The core's Yandex check on a profile without a key now reaches the app (a profile without a Session
+  used to log "external solver required" and never ask for the check).
+
 ## [2.2.0] - 2026-10-01
 
 ### Fixed
