@@ -28,7 +28,7 @@ All notable changes to OpenFluxAndroid. Format loosely follows
 
 ### Changed
 
-- Bumps `OpenFlux` to the core 0.4.0 ([`c30c2b2`](https://github.com/p1neappleXpress/OpenFlux/commit/c30c2b20500e17f547cf317caf024e4b3d81fb46)) and `shared` to
+- Bumps `OpenFlux` to the core 0.4.0 ([`a415c09`](https://github.com/p1neappleXpress/OpenFlux/commit/a415c09d1d1006a201b5e9523d2f30d7ee2b4149)) and `shared` to
   [`a7fca72`](https://github.com/p1neappleXpress/OpenFluxClientShared/commit/a7fca72).
 - The core's Yandex check on a profile without a key now reaches the app (a profile without a Session
   used to log "external solver required" and never ask for the check).
