@@ -13,11 +13,13 @@ import io.openflux.desktop.model.AppSettings
 import io.openflux.desktop.model.CaptchaPrompt
 import io.openflux.desktop.model.ConnectionMode
 import io.openflux.desktop.model.ConnectionState
+import io.openflux.desktop.model.CoreConfig
 import io.openflux.desktop.model.ExitAddress
 import io.openflux.desktop.model.LogLevel
 import io.openflux.desktop.model.LogLine
 import io.openflux.desktop.model.Profile
 import io.openflux.desktop.model.TrafficStats
+import io.openflux.desktop.model.TransportType
 import io.openflux.desktop.model.YandexDisk
 import io.openflux.desktop.service.ConnectionService
 import io.openflux.desktop.service.SettingsRepository
@@ -282,6 +284,8 @@ class AndroidConnectionService(
     private fun startCarrier(current: Run): String {
         val profile = current.profile
         val secret = profile.secret
+        // A script carrier runs the JS engine, an experimental feature that is off until the user turns it on.
+        if (!current.settings.experimental && profile.carriers.any { it.type == TransportType.SCRIPT }) return CoreConfig.SCRIPTS_OFF
         Mobile.setDebugLevel(current.settings.debugLevel.toLong())
         // The mode without a server: a PHP node on a web hosting, over cups.online or a Mail.ru document.
         if (profile.stream) {

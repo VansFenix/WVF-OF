@@ -20,6 +20,9 @@ import io.openflux.desktop.service.PhpHostingService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /**
  * Holds what the UI and the core service share for the life of the process:
@@ -56,19 +59,23 @@ class OpenFluxApplication : Application() {
             settingsPageHost = io.openflux.android.web.AndroidSettingsPageHost,
         )
 
-        // Intermediate bundle: prove the JS (goja) script-transport engine is
-        // linked into this build and runs in-process on the device, alongside
-        // the unchanged PHP-node transports. Result lands in logcat under the
-        // tag "OpenFluxJS"; no UI yet — picking a script transport comes later.
-        Thread {
-            try {
-                val available = Mobile.scriptEngineAvailable()
-                val result = Mobile.scriptEngineSelfTest(cacheDir.absolutePath)
-                Log.i("OpenFluxJS", "engine available=$available selftest=$result")
-            } catch (t: Throwable) {
-                Log.e("OpenFluxJS", "engine self-test failed", t)
+        // The JS (goja) script-transport engine is an experimental feature: nothing of it runs
+        // until the user turns "Экспериментальные функции" on. Then the scripts shipped in the
+        // APK are installed (or upgraded) and the engine is proved to run in-process once; the
+        // result lands in logcat under the tag "OpenFluxJS".
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            settings.settings.map { it.experimental }.distinctUntilChanged().collect { on ->
+                if (!on) return@collect
+                scripts.syncBundled()
+                try {
+                    val available = Mobile.scriptEngineAvailable()
+                    val result = Mobile.scriptEngineSelfTest(cacheDir.absolutePath)
+                    Log.i("OpenFluxJS", "engine available=$available selftest=$result")
+                } catch (t: Throwable) {
+                    Log.e("OpenFluxJS", "engine self-test failed", t)
+                }
             }
-        }.start()
+        }
     }
 }
 

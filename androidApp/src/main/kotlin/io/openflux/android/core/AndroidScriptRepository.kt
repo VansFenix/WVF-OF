@@ -11,8 +11,8 @@ import java.io.File
 /**
  * The Android app's registry of installed JS script transports. The core is a
  * library here, so reading a transport is an in-process call; the scripts
- * shipped in the APK (assets/scripts) are installed on first run and replace
- * the installed copies when a build brings newer ones.
+ * shipped in the APK (assets/scripts) are installed the first time the experimental
+ * features are turned on and replace the installed copies when a build brings newer ones.
  */
 class AndroidScriptRepository(context: Context) :
     FileScriptRepository(File(context.applicationContext.filesDir, "scripts"), { data, sig, key -> Mobile.inspectTransport(data, sig, key) }) {
@@ -21,7 +21,12 @@ class AndroidScriptRepository(context: Context) :
 
     val officialKey: String get() = Mobile.officialScriptKey()
 
-    init {
+    /**
+     * Installs the scripts shipped in the APK, or upgrades the installed copies of them. Not at
+     * construction: it runs the script engine, so it waits for the user to turn the experimental
+     * features on (see OpenFluxApplication).
+     */
+    fun syncBundled() {
         if (scripts.value.isEmpty()) installBundled() else upgradeBundled()
     }
 
