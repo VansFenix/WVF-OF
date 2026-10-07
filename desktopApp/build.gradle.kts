@@ -32,6 +32,11 @@ dependencies {
     testImplementation(compose.uiTest)
 }
 
+configurations.all {
+    exclude(group = "org.jogamp.gluegen")
+    exclude(group = "org.jogamp.jogl")
+}
+
 /**
  * The core the app bundles, in resources/<windows|macos|linux> (Compose's
  * appResources layout, where CoreBinary looks for it): openflux-<os>-<arch>

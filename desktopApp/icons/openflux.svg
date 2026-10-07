@@ -1,44 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0B0E17"/>
-      <stop offset="100%" stop-color="#161F33"/>
+      <stop offset="0%" stop-color="#0E121D"/>
+      <stop offset="100%" stop-color="#181F2E"/>
     </linearGradient>
-    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00E5FF"/>
-      <stop offset="100%" stop-color="#0077FE"/>
+    <linearGradient id="cyanRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF"/>
+      <stop offset="50%" stop-color="#00A2FF"/>
+      <stop offset="100%" stop-color="#7B2CBF"/>
     </linearGradient>
-    <linearGradient id="innerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#80F0FF"/>
-      <stop offset="100%" stop-color="#00D2FF"/>
+    <linearGradient id="violetRibbon" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B5179E"/>
+      <stop offset="50%" stop-color="#7209B7"/>
+      <stop offset="100%" stop-color="#00D4FF"/>
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="16" result="blur"/>
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
   </defs>
 
-  <!-- Background Squircle -->
-  <rect x="48" y="48" width="928" height="928" rx="210" fill="url(#bgGrad)" stroke="#00E5FF" stroke-opacity="0.4" stroke-width="8"/>
+  <!-- Dark Obsidian Tile -->
+  <rect x="64" y="64" width="896" height="896" rx="220" fill="url(#bgGrad)" stroke="#00F0FF" stroke-opacity="0.25" stroke-width="6"/>
 
-  <!-- Top Flux Data Flow Bars -->
-  <rect x="330" y="220" width="140" height="30" rx="15" fill="#00E5FF" fill-opacity="0.85"/>
-  <rect x="554" y="220" width="140" height="30" rx="15" fill="#00E5FF" fill-opacity="0.85"/>
-
-  <!-- Kinetic W Wings and Diamond Core -->
-  <g filter="url(#glow)">
-    <!-- Left outer W wing -->
-    <polygon points="210,290 280,290 410,710 330,710" fill="url(#cyanGrad)"/>
-    <!-- Right outer W wing -->
-    <polygon points="814,290 744,290 614,710 694,710" fill="url(#cyanGrad)"/>
-    <!-- Left inner chevron -->
-    <polygon points="340,680 410,440 470,440 415,680" fill="url(#innerGrad)"/>
-    <!-- Right inner chevron -->
-    <polygon points="684,680 614,440 554,440 609,680" fill="url(#innerGrad)"/>
-    <!-- Center Diamond Flux Core -->
-    <polygon points="512,310 572,450 512,590 452,450" fill="#FFFFFF"/>
-    <polygon points="512,360 547,450 512,540 477,450" fill="#00E5FF"/>
-    <!-- Bottom anchor pill -->
-    <rect x="440" y="740" width="144" height="26" rx="13" fill="#0099FF" fill-opacity="0.85"/>
+  <!-- Glowing Infinity W Wave -->
+  <g filter="url(#neonGlow)">
+    <!-- Back Loop -->
+    <path d="M 280,390 C 180,430 180,620 310,650 C 430,680 470,470 512,390 C 554,470 594,680 714,650 C 844,620 844,430 744,390 C 674,360 600,450 512,560 C 424,450 350,360 280,390 Z" 
+          fill="none" stroke="url(#violetRibbon)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Front Flow Ribbon (Forms the W Peak and Energy Crest) -->
+    <path d="M 240,370 C 290,440 370,620 450,570 C 512,530 490,370 512,350 C 534,370 512,530 574,570 C 654,620 734,440 784,370" 
+          fill="none" stroke="url(#cyanRibbon)" stroke-width="36" stroke-linecap="round"/>
+          
+    <!-- Core Kinetic Pulse Highlight -->
+    <circle cx="512" cy="350" r="14" fill="#FFFFFF"/>
+    <circle cx="512" cy="350" r="26" fill="#00F0FF" fill-opacity="0.5"/>
   </g>
 </svg>
