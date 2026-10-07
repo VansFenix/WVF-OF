@@ -10,3 +10,4 @@ androidApp/libs/*.jar
 androidApp/libs/openflux-core.version
 desktopApp/resources/*/*
 !desktopApp/resources/*/.gitkeep
+release_builds/
