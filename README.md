@@ -1,77 +1,70 @@
-# OpenFluxAndroid
+# WVF OF
 
-Android client for [OpenFlux](https://github.com/p1neappleXpress/OpenFlux):
-system VPN or local SOCKS5, multi-transport sessions with automatic
-failover, AES-256-GCM encryption, and the in-app flow for passing a
-transport's check (SmartCaptcha, a login wall) through the built-in browser.
+<p align="center">
+  <img src="desktopApp/icons/wvf_of.svg" width="160" alt="WVF OF Logo" />
+</p>
 
-This repository's app code and UI (the `androidApp/` and `shared/` modules)
-come from [meepo161/OpenFluxClient](https://github.com/meepo161/OpenFluxClient),
-used here with the author's agreement. **Huge thanks to
-[@meepo161](https://github.com/meepo161)** — see [Credits](#credits) below.
-The previous, simpler single-transport app that used to live in this
-repository is preserved at the [`legacy-native-app`](../../tree/legacy-native-app)
-tag.
+<p align="center">
+  <b>Современный защищенный кроссплатформенный клиент протокола OpenFlux</b><br>
+  Поддержка: <b>Windows</b> • <b>Linux</b> • <b>Android</b>
+</p>
 
-## Getting the code
+---
 
+## Возможности
+
+- **Полная поддержка протокола OpenFlux**: многотранспортные сессии, умный автоматический failover, поддержка прокси и системного VPN/TUN.
+- **Новый дизайн**: современная неоновая палитра (Electric Cyan / Midnight Slate), скругленный интерфейс, плавные анимации.
+- **Единая кодовая база Compose Multiplatform**:
+  - **Windows** (MSI / EXE / Portable) — встроенный драйвер Wintun, системный трей, поддержка горячих клавиш.
+  - **Linux** (DEB / Distributable) — интеграция с системным треем и окружением.
+  - **Android** (APK) — Android VpnService, встроенный QR-сканер, поддержка SmartCaptcha.
+
+---
+
+## Структура проекта
+
+```
+wvf-of/
+├── androidApp/    Клиент для Android (VpnService, QR-сканер, сервис уведомлений)
+├── desktopApp/    Клиент для Desktop (Windows / Linux / macOS, Compose Desktop)
+├── shared/        Общая кодовая база UI, моделей и бизнес-логики (Compose Multiplatform)
+├── OpenFlux/      Подмодуль: высокопроизводительное сетевое ядро на Go
+└── scripts/       Скрипты сборки ядра для Desktop и Android
+```
+
+---
+
+## Сборка
+
+### Требования
+- JDK 17 (Eclipse Adoptium Temurin 17)
+- Go (версия 1.22+)
+- Для Android: Android SDK 35 + NDK 27 + `gomobile`
+
+### Сборка для Desktop (Windows / Linux)
 ```bash
-git clone --recurse-submodules https://github.com/p1neappleXpress/OpenFluxAndroid.git
+# Сборка ядра
+bash scripts/build-core.sh
+
+# Запуск десктопного приложения
+./gradlew :desktopApp:run
+
+# Создание установщиков (MSI, EXE на Windows; DEB на Linux)
+./gradlew :desktopApp:packageDistributionForCurrentOS
 ```
 
-Already cloned without `--recurse-submodules`?
-
+### Сборка для Android
 ```bash
-git submodule update --init --recursive
+# Сборка gomobile AAR ядра
+bash scripts/build-android-core.sh
+
+# Сборка APK
+./gradlew :androidApp:assembleRelease
 ```
 
-This checks out two submodules:
+---
 
-- `shared/` → [OpenFluxClientShared](https://github.com/p1neappleXpress/OpenFluxClientShared),
-  the Compose Multiplatform UI and models shared with
-  [OpenFluxDesktop](https://github.com/p1neappleXpress/OpenFluxDesktop).
-- `OpenFlux/` → [OpenFlux](https://github.com/p1neappleXpress/OpenFlux), the
-  core this app embeds as a library (gomobile).
-
-## Building
-
-Needs JDK 17, Go, the Android SDK and NDK 27, and `gomobile`
-(`go install golang.org/x/mobile/cmd/gomobile@latest`).
-
-```bash
-scripts/build-android-core.sh          # builds androidApp/libs/openflux.aar
-                                        # from the OpenFlux/ submodule
-./gradlew :androidApp:assembleDebug    # APK, split per ABI
-```
-
-`scripts/build-android-core.sh` also accepts an explicit path
-(`scripts/build-android-core.sh ../OpenFlux`) if you'd rather build against a
-separate checkout than the submodule.
-
-## Structure
-
-```
-androidApp/   VPN service, WebView-based check flow, camera (QR), settings
-shared/       Submodule: models, service interfaces, design system, screens
-OpenFlux/     Submodule: the core (CLI + the mobile/ gomobile bridge)
-scripts/      build-android-core.sh
-```
-
-## Credits
-
-- **[meepo161](https://github.com/meepo161)** — author of
-  [OpenFluxClient](https://github.com/meepo161/OpenFluxClient), the source of
-  this app's UI and logic (`androidApp/`, `shared/`): multi-transport
-  sessions with failover, AES-256-GCM encryption, the in-app check/captcha
-  flow, the node-deployment wizard, and the Compose design system. Thank you!
-- **[p1neappleXpress](https://github.com/p1neappleXpress)** — author of the
-  [OpenFlux](https://github.com/p1neappleXpress/OpenFlux) core this app
-  embeds: the tunnel, transports, and negotiation protocol.
-- **[damnurmum](https://github.com/damnurmum)** — author of
-  [OpenFlux-Android](https://github.com/damnurmum/OpenFlux-Android) and,
-  in the core, `openflux://` links and QR codes, and the cups.online
-  transport, which this app's share and scan screens build on. Thank you!
-
-## License
-
-GNU General Public License v3.0 or later — see [LICENSE](LICENSE).
+## Лицензия
+Проект распространяется под лицензией GPL-3.0.
+Базируется на сетевом протоколе OpenFlux.

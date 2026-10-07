@@ -9,12 +9,12 @@
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="192"
-                android:startY="196.5"
-                android:endX="64.5"
-                android:endY="526.5"
-                android:startColor="#4F7CFF"
-                android:endColor="#314D9E" />
+                android:startX="0"
+                android:startY="0"
+                android:endX="432"
+                android:endY="432"
+                android:startColor="#0B0E17"
+                android:endColor="#161F33" />
         </aapt:attr>
     </path>
 </vector>

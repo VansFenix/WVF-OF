@@ -1,4 +1,4 @@
-rootProject.name = "openfluxandroid"
+rootProject.name = "wvf-of"
 
 pluginManagement {
     repositories {
@@ -39,3 +39,4 @@ plugins {
 // `git submodule update --init --recursive`).
 include(":shared")
 include(":androidApp")
+include(":desktopApp")
