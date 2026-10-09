@@ -1,40 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 432 432" width="432" height="432">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0E121D"/>
-      <stop offset="100%" stop-color="#181F2E"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090D18"/>
+      <stop offset="100%" stop-color="#111A2E"/>
     </linearGradient>
-    <linearGradient id="cyanRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00F0FF"/>
-      <stop offset="50%" stop-color="#00A2FF"/>
-      <stop offset="100%" stop-color="#7B2CBF"/>
-    </linearGradient>
-    <linearGradient id="violetRibbon" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#B5179E"/>
-      <stop offset="50%" stop-color="#7209B7"/>
-      <stop offset="100%" stop-color="#00D4FF"/>
-    </linearGradient>
-    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="18" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
   </defs>
-
-  <!-- Dark Obsidian Tile -->
-  <rect x="64" y="64" width="896" height="896" rx="220" fill="url(#bgGrad)" stroke="#00F0FF" stroke-opacity="0.25" stroke-width="6"/>
-
-  <!-- Glowing Infinity W Wave -->
-  <g filter="url(#neonGlow)">
-    <!-- Back Loop -->
-    <path d="M 280,390 C 180,430 180,620 310,650 C 430,680 470,470 512,390 C 554,470 594,680 714,650 C 844,620 844,430 744,390 C 674,360 600,450 512,560 C 424,450 350,360 280,390 Z" 
-          fill="none" stroke="url(#violetRibbon)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
-    
-    <!-- Front Flow Ribbon (Forms the W Peak and Energy Crest) -->
-    <path d="M 240,370 C 290,440 370,620 450,570 C 512,530 490,370 512,350 C 534,370 512,530 574,570 C 654,620 734,440 784,370" 
-          fill="none" stroke="url(#cyanRibbon)" stroke-width="36" stroke-linecap="round"/>
-          
-    <!-- Core Kinetic Pulse Highlight -->
-    <circle cx="512" cy="350" r="14" fill="#FFFFFF"/>
-    <circle cx="512" cy="350" r="26" fill="#00F0FF" fill-opacity="0.5"/>
+  <rect x="17" y="17" width="398" height="398" rx="90" fill="url(#bg)" stroke="#00DCFF" stroke-width="4" stroke-opacity="0.3"/>
+  <g transform="translate(216, 216) scale(0.82) translate(-216, -216)">
+    <polygon points="69.1,121.0 123.1,121.0 168.5,319.7 114.5,319.7" fill="#00E1FF"/>
+    <polygon points="362.9,121.0 308.9,121.0 263.5,319.7 317.5,319.7" fill="#00E1FF"/>
+    <polygon points="216.0,129.6 293.8,280.8 250.6,280.8 216.0,198.7 181.4,280.8 138.2,280.8" fill="#2563EB"/>
+    <polygon points="216.0,142.6 254.9,229.0 231.1,229.0 216.0,190.1 200.9,229.0 177.1,229.0" fill="#F0FDFF"/>
   </g>
 </svg>

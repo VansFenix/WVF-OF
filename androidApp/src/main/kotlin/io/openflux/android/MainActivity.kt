@@ -86,10 +86,10 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    /** An openflux:// link from the system camera or a chat goes to the import dialog. */
+    /** An openflux:// or wvf:// link from the system camera or a chat goes to the import dialog. */
     private fun handleLink(intent: Intent?) {
         val link = intent?.takeIf { it.action == Intent.ACTION_VIEW }?.dataString ?: return
-        if (link.startsWith("openflux://")) app.container.incomingLink.value = link
+        if (link.startsWith("openflux://") || link.startsWith("wvf://")) app.container.incomingLink.value = link
     }
 
     internal fun launchVpnConsent(intent: Intent) = vpnConsent.launch(intent)
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
     internal fun launchScanner() = scanner.launch(
         ScanOptions()
             .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-            .setPrompt("Наведите камеру на QR-код OpenFlux")
+            .setPrompt("Наведите камеру на QR-код WVF OF")
             .setBeepEnabled(false)
             .setOrientationLocked(false),
     )

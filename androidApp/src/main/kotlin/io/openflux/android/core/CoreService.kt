@@ -101,7 +101,7 @@ class CoreService : VpnService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         return Notification.Builder(this, CORE_CHANNEL)
-            .setContentTitle("OpenFlux")
+            .setContentTitle("WVF OF")
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_openflux_notification)
             .setOngoing(true)
@@ -112,16 +112,16 @@ class CoreService : VpnService() {
     }
 
     companion object {
-        const val ACTION_STOP = "io.openflux.android.STOP"
+        const val ACTION_STOP = "io.wvf.of.STOP"
         private const val NOTIFICATION_ID = 7
         private const val CAPTCHA_NOTIFICATION_ID = 9
-        private const val CORE_CHANNEL = "openflux_core"
-        private const val CAPTCHA_CHANNEL = "openflux_captcha"
+        private const val CORE_CHANNEL = "wvf_of_core"
+        private const val CAPTCHA_CHANNEL = "wvf_of_captcha"
 
         fun createChannels(context: Context) {
             val manager = context.getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(NotificationChannel(CORE_CHANNEL, "Подключение OpenFlux", NotificationManager.IMPORTANCE_LOW))
-            manager.createNotificationChannel(NotificationChannel(CAPTCHA_CHANNEL, "Проверка Яндекса", NotificationManager.IMPORTANCE_HIGH))
+            manager.createNotificationChannel(NotificationChannel(CORE_CHANNEL, "Подключение WVF OF", NotificationManager.IMPORTANCE_LOW))
+            manager.createNotificationChannel(NotificationChannel(CAPTCHA_CHANNEL, "Проверка капчи", NotificationManager.IMPORTANCE_HIGH))
         }
 
         fun openAppIntent(context: Context): PendingIntent = PendingIntent.getActivity(
@@ -134,10 +134,10 @@ class CoreService : VpnService() {
         fun notifyCaptcha(context: Context, remote: Boolean, login: Boolean) {
             createChannels(context)
             val title = when {
-                remote && login -> "OpenFlux: ноде нужен вход в Яндекс"
-                remote -> "OpenFlux: нода просит пройти проверку"
-                login -> "OpenFlux: нужен вход в Яндекс"
-                else -> "OpenFlux: нужна проверка Яндекса"
+                remote && login -> "WVF OF: ноде нужен вход в Яндекс"
+                remote -> "WVF OF: нода просит пройти проверку"
+                login -> "WVF OF: нужен вход в Яндекс"
+                else -> "WVF OF: требуется проверка капчи"
             }
             val notification = Notification.Builder(context, CAPTCHA_CHANNEL)
                 .setContentTitle(title)

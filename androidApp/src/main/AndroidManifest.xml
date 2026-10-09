@@ -34,12 +34,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- openflux:// links from a scanned QR (system camera) or a chat. -->
+            <!-- openflux:// and wvf:// links from a scanned QR (system camera) or a chat. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="openflux" />
+                <data android:scheme="wvf" />
             </intent-filter>
         </activity>
 

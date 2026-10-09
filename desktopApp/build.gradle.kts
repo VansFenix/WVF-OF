@@ -21,6 +21,7 @@ val appVersion = (findProperty("appVersion") as String?)?.removePrefix("v")?.tak
 dependencies {
     implementation(project(":shared"))
     implementation(compose.desktop.currentOs)
+    implementation(compose.desktop.linux_x64)
     // Skia's Windows natives (skiko) come with the host's runtime above only
     // when building on Windows; a Windows package needs them whatever builds it.
     if (findProperty("windowsPackage") == "true") implementation(compose.desktop.windows_x64)

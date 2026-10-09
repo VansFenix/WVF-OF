@@ -1,48 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="432"
     android:viewportHeight="432">
-    <!-- Top Flux Data Flow Bars -->
-    <path
-        android:fillColor="#FF00E5FF"
-        android:pathData="M 139.2,92.8 L 198.3,92.8 A 6.3,6.3 0 0,1 204.6,99.1 L 204.6,99.1 A 6.3,6.3 0 0,1 198.3,105.5 L 139.2,105.5 A 6.3,6.3 0 0,1 132.9,99.1 L 132.9,99.1 A 6.3,6.3 0 0,1 139.2,92.8 Z" />
-    <path
-        android:fillColor="#FF00E5FF"
-        android:pathData="M 233.7,92.8 L 292.8,92.8 A 6.3,6.3 0 0,1 299.1,99.1 L 299.1,99.1 A 6.3,6.3 0 0,1 292.8,105.5 L 233.7,105.5 A 6.3,6.3 0 0,1 227.4,99.1 L 227.4,99.1 A 6.3,6.3 0 0,1 233.7,92.8 Z" />
-
-    <!-- Left outer W wing -->
-    <path
-        android:fillColor="#FF00D2FF"
-        android:pathData="M 88.6,122.3 L 118.1,122.3 L 173.0,299.5 L 139.2,299.5 Z" />
-
-    <!-- Right outer W wing -->
-    <path
-        android:fillColor="#FF00D2FF"
-        android:pathData="M 343.4,122.3 L 313.9,122.3 L 259.0,299.5 L 292.8,299.5 Z" />
-
-    <!-- Left inner chevron -->
-    <path
-        android:fillColor="#FF80F0FF"
-        android:pathData="M 143.4,286.9 L 173.0,185.6 L 198.3,185.6 L 175.1,286.9 Z" />
-
-    <!-- Right inner chevron -->
-    <path
-        android:fillColor="#FF80F0FF"
-        android:pathData="M 288.6,286.9 L 259.0,185.6 L 233.7,185.6 L 256.9,286.9 Z" />
-
-    <!-- Center Diamond Flux Core -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M 216.0,130.8 L 241.3,189.8 L 216.0,248.9 L 190.7,189.8 Z" />
-
-    <path
-        android:fillColor="#FF00E5FF"
-        android:pathData="M 216.0,151.9 L 230.8,189.8 L 216.0,227.8 L 201.2,189.8 Z" />
-
-    <!-- Bottom anchor pill -->
-    <path
-        android:fillColor="#FF0088FF"
-        android:pathData="M 185.6,312.2 L 246.4,312.2 A 5.5,5.5 0 0,1 251.9,317.7 L 251.9,317.7 A 5.5,5.5 0 0,1 246.4,323.2 L 185.6,323.2 A 5.5,5.5 0 0,1 180.1,317.7 L 180.1,317.7 A 5.5,5.5 0 0,1 185.6,312.2 Z" />
+    <group
+        android:pivotX="216"
+        android:pivotY="216"
+        android:scaleX="0.82"
+        android:scaleY="0.82">
+        <!-- Left Wing -->
+        <path
+            android:fillColor="#FF00E1FF"
+            android:pathData="M 69.1,121.0 L 123.1,121.0 L 168.5,319.7 L 114.5,319.7 Z" />
+        <!-- Right Wing -->
+        <path
+            android:fillColor="#FF00E1FF"
+            android:pathData="M 362.9,121.0 L 308.9,121.0 L 263.5,319.7 L 317.5,319.7 Z" />
+        <!-- Center Blue Chevron -->
+        <path
+            android:fillColor="#FF2563EB"
+            android:pathData="M 216.0,129.6 L 293.8,280.8 L 250.6,280.8 L 216.0,198.7 L 181.4,280.8 L 138.2,280.8 Z" />
+        <!-- Inner White Core -->
+        <path
+            android:fillColor="#FFF0FDFF"
+            android:pathData="M 216.0,142.6 L 254.9,229.0 L 231.1,229.0 L 216.0,190.1 L 200.9,229.0 L 177.1,229.0 Z" />
+    </group>
 </vector>

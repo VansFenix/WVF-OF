@@ -24,8 +24,8 @@ android {
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        // Its own id: installs beside the Java app (io.openflux.app).
-        applicationId = "io.openflux.client"
+        // Its own distinct id: installs beside original OpenFlux (io.openflux.client / io.openflux.app) with no conflicts.
+        applicationId = "io.wvf.of"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = appVersionCode
